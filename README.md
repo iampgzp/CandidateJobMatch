@@ -33,3 +33,8 @@ Follow these steps to set up the environment and run the application.
 2. Create and activate a Python Virtual Environment and then install the requirement.txt modules.
 
 3. Run "streamlit run app.py"
+
+## Demo
+
+https://github.com/iampgzp/CandidateJobMatch/assets/5464549/770d9052-dc7c-4da2-af43-fa6cc4ea0795
+
