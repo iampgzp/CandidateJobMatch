@@ -1,7 +1,7 @@
 # Import os to set API key
 import os
-# base64 to decode PDF files
-import base64
+# fitz to read in PDF files,
+import fitz
 # Bring in streamlit for UI/app interface
 import streamlit as st
 # Import the llama library to query LLMs
@@ -24,15 +24,15 @@ def display_pdf(file):
     """
     function to display the PDF of a given file
     """
-    # Opening file from file path
-    with open(file, "rb") as f:
-        base64_pdf = base64.b64encode(f.read()).decode('utf-8')
 
-    # Embedding PDF in HTML
-    pdf_display = F'<iframe src="data:application/pdf;base64,{base64_pdf}" width="500" height="700" type="application/pdf"></iframe>'
+    # read in pdf file to text
+    doc = fitz.open(file)
+    text = ""
+    for page in doc:  # iterate the document pages
+        text = text + page.get_text()  # get plain text encoded as UTF-8
 
-    # Displaying File
-    st.markdown(pdf_display, unsafe_allow_html=True)
+    # Displaying the text
+    st.text(text)
 
 
 def create_job_profile(t, c):
