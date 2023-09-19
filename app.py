@@ -93,24 +93,30 @@ if uploaded_file:
         company = st.text_input('Enter the name of the company')
 
         if st.button('Match'):
-            # Load the job profile based on the title-company, create from LLM if not already existed
-            job_description = create_job_profile(title, company)
+            with st.spinner("Thinking..."):
+                # Load the job profile based on the title-company, create from LLM if not already existed
+                job_description = create_job_profile(title, company)
 
-            # Load the resume + job profile to index
-            documents = SimpleDirectoryReader(input_files=[
-                                              "data/"+uploaded_file.name]).load_data()
-            index = VectorStoreIndex.from_documents(documents)
-            query_engine = index.as_query_engine()
+                # Load the resume + job profile to index
+                documents = SimpleDirectoryReader(input_files=[
+                    "data/"+uploaded_file.name]).load_data()
+                index = VectorStoreIndex.from_documents(documents)
+                query_engine = index.as_query_engine(streaming=True)
 
-            # Pass to LLM
-            response = query_engine.query(
-                "For the job profile: " + job_description + "\n If the resume doesn't match the job requirement or doesn't have relevant information, then output 'you think it's not a good fit' and stop. Otherwise, output 'you think it's a good fit' and provide a confident score with 3 rationales").response
-            # ...and write it out to the screen
-            st.write(response)
-            # Display the job profile
-            job_expander = st.expander("See the job profile we are matching")
-            job_expander.write(job_description)
-            # Display the cost
-            st.session_state.count += token_counter.total_llm_token_count
-            COST = st.session_state.count / 1000 * 0.02
-            st.write(f"Current Total Cost is ${COST}")
+                # Pass to LLM
+                streaming_response = query_engine.query(
+                    "For the job profile: " + job_description + "\n If the resume doesn't match the job requirement or doesn't have relevant information, then output 'I think it's not a good fit' and stop. Otherwise, output 'I think it's a good fit' and provide a confident score with 3 rationales")
+                # ...and write it out to the screen
+                element = st.empty()
+                streaming_text = ""
+                for text in streaming_response.response_gen:
+                    streaming_text += text
+                    element.write(streaming_text)
+                # Display the job profile
+                job_expander = st.expander(
+                    "See the job profile we are matching")
+                job_expander.write(job_description)
+                # Display the cost
+                st.session_state.count += token_counter.total_llm_token_count
+                COST = st.session_state.count / 1000 * 0.02
+                st.write(f"Current Total Cost is ${COST}")
